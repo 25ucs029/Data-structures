@@ -1,0 +1,203 @@
+from collections import deque
+
+class MovieTicketBookingSystem:
+    def __init__(self):
+        self.movies = {
+            1: {"name": "Avengers: Endgame", "price": 180, "seats": 20},
+            2: {"name": "Leo", "price": 160, "seats": 20},
+            3: {"name": "Interstellar", "price": 200, "seats": 20},
+            4: {"name": "Vikram", "price": 150, "seats": 20},
+            5: {"name": "Inception", "price": 180, "seats": 20}
+        }
+        self.booking_queue = deque()
+        self.booking_history = []
+        self.next_booking_id = 101
+
+    # 1. Display Movies
+    def display_movies(self):
+        print("\n========= MOVIE MENU =========")
+        for movie_id, movie in self.movies.items():
+            print(f"{movie_id}. {movie['name']} - Rs., movie['price'], Seats: {movie['seats']}")
+
+    # 2. Search Movie
+    def search_movie(self):
+        keyword = input("\nEnter movie name to search: ").lower()
+        found = False
+
+        print("\n========= SEARCH RESULTS =========")
+        for movie_id, movie in self.movies.items():
+            if keyword in movie["name"].lower():
+                print(f"{movie_id}. {movie['name']} - Rs., movie['price'], Seats: {movie['seats']}")
+                found = True
+
+        if not found:
+            print("Movie not found.")
+
+    # 3. Book Tickets
+    def book_ticket(self):
+        self.display_movies()
+
+        try:
+            movie_id = int(input("\nEnter movie ID: "))
+            if movie_id not in self.movies:
+                print("Invalid movie ID.")
+                return
+
+            quantity = int(input("Enter number of tickets: "))
+            if quantity <= 0:
+                print("Invalid ticket quantity.")
+                return
+
+            movie = self.movies[movie_id]
+
+            if quantity > movie["seats"]:
+                print("Not enough seats available.")
+                return
+
+            customer = input("Enter customer name: ").strip()
+            if not customer:
+                print("Customer name cannot be empty.")
+                return
+
+            total = movie["price"] * quantity
+            booking = {
+                "id": self.next_booking_id,
+                "customer": customer,
+                "movie": movie["name"],
+                "tickets": quantity,
+                "total": total,
+                "status": "Pending"
+            }
+
+            movie["seats"] -= quantity
+            self.booking_queue.append(booking)
+
+            print("\nBooking placed successfully!")
+            print(f"Booking ID: {self.next_booking_id}")
+            print(f"Movie: {movie['name']}")
+            print(f"Tickets: {quantity}")
+            print(f"Total Amount: Rs. {total}")
+
+            self.next_booking_id += 1
+
+        except ValueError:
+            print("Enter valid numbers.")
+
+    # 4. Process Booking
+    def process_booking(self):
+        if not self.booking_queue:
+            print("\nNo pending bookings.")
+            return
+
+        booking = self.booking_queue.popleft()
+        booking["status"] = "Confirmed"
+        self.booking_history.append(booking)
+
+        print("\n========= PROCESSING BOOKING =========")
+        print(f"Booking ID: {booking['id']}")
+        print(f"Customer: {booking['customer']}")
+        print(f"Movie: {booking['movie']}")
+        print(f"Tickets: {booking['tickets']}")
+        print(f"Total Amount: Rs. {booking['total']}")
+        print("Booking confirmed successfully!")
+
+    # 5. Cancel Booking
+    def cancel_booking(self):
+        if not self.booking_queue and not self.booking_history:
+            print("\nNo bookings available to cancel.")
+            return
+
+        try:
+            booking_id = int(input("Enter Booking ID to cancel: "))
+        except ValueError:
+            print("Invalid Booking ID.")
+            return
+
+        selected = None
+        for booking in self.booking_queue:
+            if booking["id"] == booking_id:
+                selected = booking
+                break
+
+        if selected:
+            # Restore the seats after cancellation
+            for movie in self.movies.values():
+                if movie["name"] == selected["movie"]:
+                    movie["seats"] += selected["tickets"]
+                    break
+
+            self.booking_queue.remove(selected)
+            selected["status"] = "Cancelled"
+            self.booking_history.append(selected)
+            print("Booking cancelled successfully!")
+            return
+
+        print("Booking not found in pending queue.")
+
+    # 6. Display Pending Bookings
+    def display_bookings(self):
+        if not self.booking_queue:
+            print("\nNo pending bookings.")
+            return
+
+        print("\n========= PENDING BOOKINGS =========")
+        for booking in self.booking_queue:
+            print(f"Booking ID: {booking['id']} | Customer: {booking['customer']} | Movie: {booking['movie']} | Tickets: {booking['tickets']} | Amount: Rs. {booking['total']}")
+
+    # 7. Display Booking History
+    def display_history(self):
+        if not self.booking_history:
+            print("\nNo booking history available.")
+            return
+
+        print("\n========= BOOKING HISTORY =========")
+        for booking in self.booking_history:
+            print(f"\nBooking ID.: {booking['id']}")
+            print(f"Customer: {booking['customer']}")
+            print(f"Movie: {booking['movie']}")
+            print(f"Tickets: {booking['tickets']}")
+            print(f"Total Amount: Rs. {booking['total']}")
+            print(f"Status: {booking['status']}")
+            print("-" * 40)
+
+    # 8. Main Program Loop
+    def run(self):
+        while True:
+            print("\n" + "=" * 45)
+            print("MOVIE TICKET BOOKING SYSTEM")
+            print("=" * 45)
+            print("1. Display Movies")
+            print("2. Search Movie")
+            print("3. Book Tickets")
+            print("4. Process Booking")
+            print("5. Cancel Booking")
+            print("6. Display Pending Bookings")
+            print("7. Display Booking History")
+            print("8. Exit")
+            print("=" * 45)
+
+            choice = input("Enter your choice: ")
+
+            if choice == '1':
+                self.display_movies()
+            elif choice == '2':
+                self.search_movie()
+            elif choice == '3':
+                self.book_ticket()
+            elif choice == '4':
+                self.process_booking()
+            elif choice == '5':
+                self.cancel_booking()
+            elif choice == '6':
+                self.display_bookings()
+            elif choice == '7':
+                self.display_history()
+            elif choice == '8':
+                print("Thank you for using the system!")
+                break
+            else:
+                print("Invalid choice!")
+
+if __name__ == "__main__":
+    system = MovieTicketBookingSystem()
+    system.run()
